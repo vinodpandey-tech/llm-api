@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LLM Streaming UI</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    textarea { width: 100%; height: 80px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+    #output {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Local LLM Streaming UI</h2>
+
+  <textarea id="prompt" placeholder="Enter your prompt..."></textarea>
+  <br>
+  <button onclick="startStream()">Generate</button>
+
+  <div id="output"></div>
+
+  <script>
+    let eventSource;
+
+    function startStream() {
+      const prompt = document.getElementById("prompt").value;
+      const output = document.getElementById("output");
+
+      output.innerHTML = "";
+
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      const url = `http://localhost:8000/generate-stream?prompt=${encodeURIComponent(prompt)}`;
+
+      eventSource = new EventSource(url);
+
+      eventSource.onmessage = function(event) {
+        if (event.data === "[DONE]") {
+          eventSource.close();
+          return;
+        }
+
+        output.innerHTML += event.data;
+      };
+
+      eventSource.onerror = function() {
+        output.innerHTML += "\n[Error occurred]";
+        eventSource.close();
+      };
+    }
+  </script>
+
+</body>
+</html>
