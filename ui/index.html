@@ -22,41 +22,56 @@
   <textarea id="prompt" placeholder="Enter your prompt..."></textarea>
   <br>
   <button onclick="startStream()">Generate</button>
+  <button onclick="stopStream()">Stop</button>
 
   <div id="output"></div>
 
-  <script>
-    let eventSource;
+<script>
+  let eventSource = null;
 
-    function startStream() {
-      const prompt = document.getElementById("prompt").value;
-      const output = document.getElementById("output");
+  function startStream() {
+    const prompt = document.getElementById("prompt").value;
+    const output = document.getElementById("output");
 
-      output.innerHTML = "";
+    output.innerHTML = "";
 
-      if (eventSource) {
+    if (eventSource) {
+      eventSource.close();
+    }
+
+    const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}`;
+
+    eventSource = new EventSource(url);
+
+    eventSource.onmessage = function(event) {
+      if (event.data === "[DONE]") {
         eventSource.close();
+        eventSource = null;
+        return;
       }
 
-      const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}`;
+      output.innerHTML += event.data;
+    };
 
-      eventSource = new EventSource(url);
-
-      eventSource.onmessage = function(event) {
-        if (event.data === "[DONE]") {
-          eventSource.close();
-          return;
-        }
-
-        output.innerHTML += event.data;
-      };
-
-      eventSource.onerror = function() {
-        output.innerHTML += "\n[Error occurred]";
+    eventSource.onerror = function() {
+      output.innerHTML += "\n[Error occurred]";
+      if (eventSource) {
         eventSource.close();
-      };
+        eventSource = null;
+      }
+    };
+  }
+
+  function stopStream() {
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+
+      const output = document.getElementById("output");
+      output.innerHTML += "\n\n[Stopped by user]";
     }
-  </script>
+  }
+</script>
 
 </body>
 </html>

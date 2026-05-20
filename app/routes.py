@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -34,11 +34,15 @@ async def generate_text_route(payload: GenerateRequest):
 
 
 @router.post("/generate-stream")
-async def generate_stream_route(payload: GenerateRequest):
+async def generate_stream_route(request: Request, payload: GenerateRequest):
     prompt = payload.prompt
 
     async def event_generator():
         async for item in generate_stream(prompt):
+
+            if await request.is_disconnected():
+                logger("Client disconnected → stopping stream")
+            break
 
             yield f"data: {item['token']}\n\n"
 
@@ -50,9 +54,13 @@ async def generate_stream_route(payload: GenerateRequest):
 
 ## Added only for UI tests
 @router.get("/generate-stream")
-async def generate_stream_route(prompt: str):
+async def generate_stream_route(request: Request, prompt: str):
     async def event_generator():
         async for item in generate_stream(prompt):
+
+            if await request.is_disconnected():
+                logger("Client disconnected → stopping stream")
+                break
 
             yield f"data: {item['token']}\n\n"
 
