@@ -14,8 +14,7 @@
 3. ollama pull mistral
 4. ollama run mistral
 5. pip install -r requirements.txt
-6. Add `OLLAMA_URL` in .env file with value as `http://localhost:11434/api/generate`
-7. uvicorn app.main:app --reload
+6. uvicorn app.main:app --reload
 
 ## Test
 

@@ -38,7 +38,7 @@
         eventSource.close();
       }
 
-      const url = `http://localhost:8000/generate-stream?prompt=${encodeURIComponent(prompt)}`;
+      const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}`;
 
       eventSource = new EventSource(url);
 
