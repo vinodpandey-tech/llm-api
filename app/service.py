@@ -1,6 +1,7 @@
+from fastapi.responses import StreamingResponse
 import httpx
 
-from app.client import call_ollama
+from app.client import call_ollama, stream_ollama
 from app.logger import get_logger
 
 logger = get_logger()
@@ -13,3 +14,15 @@ async def generate_text(prompt: str):
     except httpx.TimeoutException:
         return {"error": "LLM timeout"}
     return result.get("response", "")
+
+
+async def generate_stream(prompt: str):
+    async for chunk in stream_ollama(prompt):
+
+        token = chunk.get("response", "")
+        done = chunk.get("done", False)
+
+        yield {"token": token, "done": done}
+
+        if done:
+            break
