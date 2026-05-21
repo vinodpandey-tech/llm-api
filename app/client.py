@@ -23,7 +23,6 @@ async def stream_ollama(prompt: str):
             os.environ.get("OLLAMA_URL", DEFAULT_OLLAMA_URL),
             json={"model": "mistral", "prompt": prompt, "stream": True},
         ) as response:
-
             async for line in response.aiter_lines():
                 if not line:
                     continue

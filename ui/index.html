@@ -28,6 +28,7 @@
 
 <script>
   let eventSource = null;
+  let currentRequestId = null;
 
   function startStream() {
     const prompt = document.getElementById("prompt").value;
@@ -35,11 +36,15 @@
 
     output.innerHTML = "";
 
+    // Close existing stream
     if (eventSource) {
       eventSource.close();
     }
 
-    const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}`;
+    // Generate unique request ID
+    currentRequestId = crypto.randomUUID();
+
+    const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}&request_id=${currentRequestId}`;
 
     eventSource = new EventSource(url);
 
@@ -47,6 +52,7 @@
       if (event.data === "[DONE]") {
         eventSource.close();
         eventSource = null;
+        currentRequestId = null;
         return;
       }
 
@@ -59,17 +65,27 @@
         eventSource.close();
         eventSource = null;
       }
+      currentRequestId = null;
     };
   }
 
-  function stopStream() {
+  async function stopStream() {
+    const output = document.getElementById("output");
+
+    if (currentRequestId) {
+      await fetch(`/cancel?request_id=${currentRequestId}`, {
+        method: "POST"
+      }).catch(() => {});
+    }
+
     if (eventSource) {
       eventSource.close();
       eventSource = null;
-
-      const output = document.getElementById("output");
-      output.innerHTML += "\n\n[Stopped by user]";
     }
+
+    currentRequestId = null;
+
+    output.innerHTML += "\n\n[Stopped by user]";
   }
 </script>
 
