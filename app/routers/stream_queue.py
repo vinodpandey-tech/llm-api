@@ -3,9 +3,9 @@ import asyncio
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
-from app.logger import get_logger
-from app.models import GenerateRequest, QueueRequest
-from app.queue import request_queue
+from app.common.logger import get_logger
+from app.common.models import GenerateRequest, QueueRequest
+from app.queue.queue import request_queue
 
 logger = get_logger()
 router = APIRouter()

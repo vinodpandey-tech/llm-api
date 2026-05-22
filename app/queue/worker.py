@@ -1,5 +1,5 @@
-from app.client import stream_ollama
-from app.queue import request_queue
+from app.integration.client import stream_ollama
+from app.queue.queue import request_queue
 
 
 async def worker():

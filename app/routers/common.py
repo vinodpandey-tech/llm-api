@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 
-from app.logger import get_logger
-from app.models import GenerateRequest
-from app.service import generate_text
-from app.state import active_requests
+from app.common.logger import get_logger
+from app.common.models import GenerateRequest
+from app.service.service import generate_text
+from app.common.state import active_requests
 
 logger = get_logger()
 router = APIRouter()

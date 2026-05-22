@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.routers import common, stream, stream_queue
-from app.worker import worker
+from app.queue.worker import worker
 
 app = FastAPI()
 dotenv.load_dotenv()

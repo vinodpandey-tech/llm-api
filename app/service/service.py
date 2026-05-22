@@ -1,7 +1,7 @@
 import httpx
 
-from app.client import call_ollama, stream_ollama
-from app.logger import get_logger
+from app.integration.client import call_ollama, stream_ollama
+from app.common.logger import get_logger
 
 logger = get_logger()
 
