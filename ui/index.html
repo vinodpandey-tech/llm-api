@@ -22,41 +22,72 @@
   <textarea id="prompt" placeholder="Enter your prompt..."></textarea>
   <br>
   <button onclick="startStream()">Generate</button>
+  <button onclick="stopStream()">Stop</button>
 
   <div id="output"></div>
 
-  <script>
-    let eventSource;
+<script>
+  let eventSource = null;
+  let currentRequestId = null;
 
-    function startStream() {
-      const prompt = document.getElementById("prompt").value;
-      const output = document.getElementById("output");
+  function startStream() {
+    const prompt = document.getElementById("prompt").value;
+    const output = document.getElementById("output");
 
-      output.innerHTML = "";
+    output.innerHTML = "";
 
-      if (eventSource) {
+    // Close existing stream
+    if (eventSource) {
+      eventSource.close();
+    }
+
+    // Generate unique request ID
+    currentRequestId = crypto.randomUUID();
+
+    const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}&request_id=${currentRequestId}`;
+
+    eventSource = new EventSource(url);
+
+    eventSource.onmessage = function(event) {
+      if (event.data === "[DONE]") {
         eventSource.close();
+        eventSource = null;
+        currentRequestId = null;
+        return;
       }
 
-      const url = `http://localhost:8000/generate-stream?prompt=${encodeURIComponent(prompt)}`;
+      output.innerHTML += event.data;
+    };
 
-      eventSource = new EventSource(url);
-
-      eventSource.onmessage = function(event) {
-        if (event.data === "[DONE]") {
-          eventSource.close();
-          return;
-        }
-
-        output.innerHTML += event.data;
-      };
-
-      eventSource.onerror = function() {
-        output.innerHTML += "\n[Error occurred]";
+    eventSource.onerror = function() {
+      output.innerHTML += "\n[Error occurred]";
+      if (eventSource) {
         eventSource.close();
-      };
+        eventSource = null;
+      }
+      currentRequestId = null;
+    };
+  }
+
+  async function stopStream() {
+    const output = document.getElementById("output");
+
+    if (currentRequestId) {
+      await fetch(`/cancel?request_id=${currentRequestId}`, {
+        method: "POST"
+      }).catch(() => {});
     }
-  </script>
+
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+
+    currentRequestId = null;
+
+    output.innerHTML += "\n\n[Stopped by user]";
+  }
+</script>
 
 </body>
 </html>

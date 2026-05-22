@@ -1,8 +1,7 @@
-from fastapi.responses import StreamingResponse
 import httpx
 
-from app.client import call_ollama, stream_ollama
-from app.logger import get_logger
+from app.integration.client import call_ollama, stream_ollama
+from app.common.logger import get_logger
 
 logger = get_logger()
 
@@ -18,7 +17,6 @@ async def generate_text(prompt: str):
 
 async def generate_stream(prompt: str):
     async for chunk in stream_ollama(prompt):
-
         token = chunk.get("response", "")
         done = chunk.get("done", False)
 
