@@ -44,7 +44,8 @@
     // Generate unique request ID
     currentRequestId = crypto.randomUUID();
 
-    const url = `/generate-stream?prompt=${encodeURIComponent(prompt)}&request_id=${currentRequestId}`;
+    // set URL for the api to test
+    const url = `/generate-stream-queued?prompt=${encodeURIComponent(prompt)}&request_id=${currentRequestId}`;
 
     eventSource = new EventSource(url);
 

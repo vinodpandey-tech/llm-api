@@ -1,10 +1,11 @@
 import asyncio
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from app.common.logger import get_logger
 from app.common.models import GenerateRequest, QueueRequest
+from app.common.state import active_requests
 from app.queue.queue import request_queue
 
 logger = get_logger()
@@ -12,24 +13,29 @@ router = APIRouter()
 
 
 @router.post("/generate-stream-queued")
-async def generate_stream_queued_route(
-    request: Request, generateRequest: GenerateRequest
-):
+async def generate_stream_queued_route(generateRequest: GenerateRequest):
     logger.info(f"API /generate-stream-queued invoked with request: {generateRequest}")
-    return await process_request(request, generateRequest.prompt)
+    return await process_request(generateRequest.prompt, generateRequest.request_id)
 
 
 ## Added only for UI tests
 @router.get("/generate-stream-queued")
-async def generate_stream_queued_ui_route(request: Request, prompt: str):
+async def generate_stream_queued_ui_route(prompt: str, request_id: str):
     logger.info(f"UI test /generate-stream-queued invoked with request: {prompt}")
-    return await process_request(request, prompt)
+    return await process_request(prompt, request_id)
 
 
-async def process_request(request: Request, prompt: str):
-    response_queue = asyncio.Queue(maxsize=100)
+async def process_request(prompt: str, request_id: str):
+    if request_queue.full():
+        return StreamingResponse(
+            iter([b"data: [ERROR] Server busy\n\n"]), media_type="text/event-stream"
+        )
 
-    req = QueueRequest(prompt=prompt, response_queue=response_queue)
+    active_requests[request_id] = True
+    response_queue = asyncio.Queue()
+    req = QueueRequest(
+        prompt=prompt, response_queue=response_queue, request_id=request_id
+    )
 
     # enqueue request
     await request_queue.put(req)
@@ -51,10 +57,6 @@ async def process_request(request: Request, prompt: str):
                 yield f"data: {token}\n\n"
 
             except asyncio.TimeoutError:
-                if await request.is_disconnected():
-                    logger.info("Client disconnected → stopping stream")
-                    req.cancelled = True
-                    break
                 continue
 
     return StreamingResponse(
