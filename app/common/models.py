@@ -13,4 +13,4 @@ class GenerateRequest(BaseModel):
 class QueueRequest:
     prompt: str
     response_queue: asyncio.Queue  # token stream channel
-    cancelled: bool = False
+    request_id: str

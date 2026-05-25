@@ -1,3 +1,4 @@
 import asyncio
 
-request_queue = asyncio.Queue()
+# prevents memory explosion under load
+request_queue = asyncio.Queue(maxsize=3)

@@ -11,10 +11,18 @@
 
 1. Install Ollama
 2. ollama serve
-3. ollama pull mistral
-4. ollama run mistral
+3. ollama pull mistral or ollama pull phi3
+4. ollama run mistral or ollama run phi3
 5. pip install -r requirements.txt
 6. uvicorn app.main:app --reload
+
+## Ollama Concurrency
+
+Set environment variables
+```
+OLLAMA_MAX_LOADED_MODELS="2"
+OLLAMA_NUM_PARALLEL="2"
+```
 
 ## Test
 

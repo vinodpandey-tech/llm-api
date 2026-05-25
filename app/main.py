@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.queue.worker import NUM_WORKERS, worker
 from app.routers import common, stream, stream_queue
-from app.queue.worker import worker
 
 app = FastAPI()
 dotenv.load_dotenv()
@@ -28,4 +28,5 @@ async def root():
 
 @app.on_event("startup")
 async def startup():
-    asyncio.create_task(worker())
+    for i in range(NUM_WORKERS):
+        asyncio.create_task(worker(i))
