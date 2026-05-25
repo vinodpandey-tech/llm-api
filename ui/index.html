@@ -34,13 +34,18 @@
     const prompt = document.getElementById("prompt").value;
     const output = document.getElementById("output");
 
-    output.innerHTML = "";
-
-    // Close existing stream
-    if (eventSource) {
-      eventSource.close();
+    if (currentRequestId) {
+      fetch(`/cancel?request_id=${currentRequestId}`, {
+        method: "POST"
+      }).catch(() => {});
     }
 
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+
+    output.innerHTML = "";
     // Generate unique request ID
     currentRequestId = crypto.randomUUID();
 

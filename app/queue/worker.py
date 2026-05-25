@@ -21,7 +21,6 @@ async def worker(worker_id: int):
             async for chunk in stream_ollama(req.prompt):
                 if not active_requests.get(req.request_id, True):
                     logger.info(f"Worker-{worker_id}: cancelled")
-                    request_queue.task_done()
                     break
 
                 token = chunk.get("response", "")
